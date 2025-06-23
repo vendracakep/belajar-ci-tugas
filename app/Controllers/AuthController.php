@@ -27,7 +27,7 @@ public function login()
             $username = $this->request->getVar('username');
             $password = $this->request->getVar('password');
 
-            $dataUser = $this->user->where(['username' => $username])->first(); //pasw 1234567
+            $dataUser = $this->user->where(['username' => $username])->first();
 
             if ($dataUser) {
                 if (password_verify($password, $dataUser['password'])) {

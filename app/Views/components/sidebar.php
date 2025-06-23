@@ -30,6 +30,21 @@
         }
         ?>
 
+        <?php
+        if (session()->get('role') == 'admin'){
+        ?>
+        <li class="nav-item">
+            <a class="nav-link <?php echo (uri_string() == 'productcategory') ? "" : "collapsed" ?>"
+                href="productcategory">
+                <i class="bi bi-receipt"></i>
+                <span>Kategori Produk</span>
+            </a>
+        </li>
+        <?php
+        }
+        ?>
+        <!-- End Produk Nav -->
+
         <li class="nav-item">
     <a class="nav-link <?php echo (uri_string() == 'profile') ? "" : "collapsed" ?>" href="profile">
         <i class="bi bi-person"></i>
