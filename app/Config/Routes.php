@@ -47,4 +47,16 @@ $routes->get('keranjang', 'TransaksiController::index', ['filter' => 'auth']);
 $routes->get('faq', 'FaqController::index', ['filter' => 'auth']);
 $routes->get('contact', 'KontakController::index', ['filter' => 'auth']);
 
+$routes->group('diskon', ['filter' => 'auth'], function ($routes) {
+    $routes->get('', 'DiskonController::index');
+    $routes->post('create', 'DiskonController::create');
+    $routes->post('update/(:num)', 'DiskonController::update/$1');
+    $routes->get('delete/(:num)', 'DiskonController::delete/$1');
+});
+
+$routes->group('pembelian', ['filter' => 'auth'], function ($routes) {
+    $routes->get('/', 'PembelianController::index');
+    $routes->get('ubah/(:num)', 'PembelianController::update_status/$1');
+});
+
 $routes->resource('api', ['controller' => 'apiController']);

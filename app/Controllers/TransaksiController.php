@@ -31,18 +31,28 @@ class TransaksiController extends BaseController
         return view('v_keranjang', $data);
     }
 
-    public function cart_add()
-    {
-        $this->cart->insert(array(
-            'id'        => $this->request->getPost('id'),
-            'qty'       => 1,
-            'price'     => $this->request->getPost('harga'),
-            'name'      => $this->request->getPost('nama'),
-            'options'   => array('foto' => $this->request->getPost('foto'))
-        ));
-        session()->setflashdata('success', 'Produk berhasil ditambahkan ke keranjang. (<a href="' . base_url() . 'keranjang">Lihat</a>)');
-        return redirect()->to(base_url('/'));
-    }
+public function cart_add()
+{
+    $diskon = session('diskon_nominal') ?? 0;
+
+    $harga_awal = $this->request->getPost('harga');
+    $harga_akhir = max(0, $harga_awal - $diskon);
+
+    $this->cart->insert([
+        'id'      => $this->request->getPost('id'),
+        'qty'     => 1,
+        'price'   => $harga_akhir,
+        'name'    => $this->request->getPost('nama'),
+        'options' => [
+            'foto'        => $this->request->getPost('foto'),
+            'harga_asli'  => $harga_awal,
+            'diskon'      => $diskon
+        ]
+    ]);
+
+    session()->setFlashdata('success', 'Produk berhasil ditambahkan ke keranjang. (<a href="' . base_url() . 'keranjang">Lihat</a>)');
+    return redirect()->to(base_url('/'));
+}
 
     public function cart_clear()
     {
@@ -157,14 +167,14 @@ public function buy()
 
         foreach ($this->cart->contents() as $value) {
             $dataFormDetail = [
-                'transaction_id' => $last_insert_id,
-                'product_id' => $value['id'],
-                'jumlah' => $value['qty'],
-                'diskon' => 0,
-                'subtotal_harga' => $value['qty'] * $value['price'],
-                'created_at' => date("Y-m-d H:i:s"),
-                'updated_at' => date("Y-m-d H:i:s")
-            ];
+    'transaction_id'  => $last_insert_id,
+    'product_id'      => $value['id'],
+    'jumlah'          => $value['qty'],
+    'diskon'          => $value['options']['diskon'] ?? 0,
+    'subtotal_harga'  => $value['qty'] * $value['price'],
+    'created_at'      => date("Y-m-d H:i:s"),
+    'updated_at'      => date("Y-m-d H:i:s")
+];
 
             $this->transaction_detail->insert($dataFormDetail);
         }

@@ -3,62 +3,72 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
-use CodeIgniter\HTTP\ResponseInterface;
-
-use App\Models\UserModel; 
+use App\Models\UserModel;
+use App\Models\DiskonModel;
 
 class AuthController extends BaseController
 {
-    function __construct()
-{
-    helper('form');
-    $this->user= new UserModel();
-}
+    protected $user;
+    protected $diskon;
 
-public function login()
-{
-    if ($this->request->getPost()) {
-        $rules = [
-            'username' => 'required|min_length[6]',
-            'password' => 'required|min_length[7]|numeric',
-        ];
+    public function __construct()
+    {
+        helper('form');
+        $this->user = new UserModel();
+        $this->diskon = new DiskonModel();
+    }
 
-        if ($this->validate($rules)) {
-            $username = $this->request->getVar('username');
-            $password = $this->request->getVar('password');
+    public function login()
+    {
+        if ($this->request->getPost()) {
+            $rules = [
+                'username' => 'required|min_length[6]',
+                'password' => 'required|min_length[7]|numeric',
+            ];
 
-            $dataUser = $this->user->where(['username' => $username])->first();
+            if ($this->validate($rules)) {
+                $username = $this->request->getVar('username');
+                $password = $this->request->getVar('password');
 
-            if ($dataUser) {
-                if (password_verify($password, $dataUser['password'])) {
-                    session()->set([
-                        'username' => $dataUser['username'],
-                        'role' => $dataUser['role'],
-                        'isLoggedIn' => TRUE
-                    ]);
+                $dataUser = $this->user->where(['username' => $username])->first();
 
-                    return redirect()->to(base_url('/'));
+                if ($dataUser) {
+                    if (password_verify($password, $dataUser['password'])) {
+                        $today = date('Y-m-d');
+                        $diskon = $this->diskon->where('tanggal', $today)->first();
+
+                        $sessionData = [
+                            'username'    => $dataUser['username'],
+                            'role'        => $dataUser['role'],
+                            'isLoggedIn'  => TRUE
+                        ];
+
+                        if ($diskon) {
+                            $sessionData['diskon_nominal'] = $diskon['nominal'];
+                        }
+
+                        session()->set($sessionData);
+                        return redirect()->to(base_url('/'));
+                    } else {
+                        session()->setFlashdata('failed', 'Kombinasi Username & Password Salah');
+                        return redirect()->back();
+                    }
                 } else {
-                    session()->setFlashdata('failed', 'Kombinasi Username & Password Salah');
+                    session()->setFlashdata('failed', 'Username Tidak Ditemukan');
                     return redirect()->back();
                 }
             } else {
-                session()->setFlashdata('failed', 'Username Tidak Ditemukan');
+                session()->setFlashdata('failed', $this->validator->listErrors());
                 return redirect()->back();
             }
-        } else {
-            session()->setFlashdata('failed', $this->validator->listErrors());
-            return redirect()->back();
         }
+
+        return view('v_login');
     }
 
-    return view('v_login');
-}
-
-public function logout()
-{
-    session()->destroy();
-    return redirect()->to('login');
-}
-
+    public function logout()
+    {
+        session()->destroy();
+        return redirect()->to('login');
+    }
 }

@@ -47,14 +47,24 @@ public function index()
     if(array_key_exists("Key", $headers)){
         if ($headers["Key"] == $this->apiKey) {
             $penjualan = $this->transaction->findAll();
-            
+
             foreach ($penjualan as &$pj) {
-                $pj['details'] = $this->transaction_detail->where('transaction_id', $pj['id'])->findAll();
+                $details = $this->transaction_detail->where('transaction_id', $pj['id'])->findAll();
+                $pj['details'] = $details;
+
+                $jumlah_item = 0;
+                foreach ($details as $d) {
+                    $jumlah_item += $d['jumlah'];
+                }
+
+                $pj['jumlah_item'] = $jumlah_item;
+                $pj['status'] = $pj['status'] == 1 ? 'Sudah Selesai' : 'Belum Selesai';
+                $pj['total_harga'] = number_format($pj['total_harga']);
+                $pj['ongkir'] = number_format($pj['ongkir']);
             }
 
             $data['status'] = ["code" => 200, "description" => "OK"];
             $data['results'] = $penjualan;
-
         }
     } 
 

@@ -224,5 +224,10 @@
 
       </ul>
     </nav><!-- End Icons Navigation -->
+    <?php if (session()->has('diskon_nominal')) : ?>
+  <div class="alert alert-success text-center w-100 m-0" style="padding: 10px;">
+    Hari ini ada diskon <?= number_format(session('diskon_nominal')) ?> per item
+  </div>
+<?php endif; ?>
 
   </header><!-- End Header -->
